@@ -1,7 +1,7 @@
 <?php  namespace BackPack\Installer\Console;
 
 use ZipArchive;
-use Symfony\Component\Process\Process;
+use Illuminate\Filesystem\Filesystem;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -14,6 +14,18 @@ use Symfony\Component\Console\Output\OutputInterface;
  * @url http://www.foxted.com
  */
 class NewCommand extends Command {
+
+    protected $filesystem;
+
+    /**
+     * @param null       $name
+     * @param Filesystem $filesystem
+     */
+    public function __construct($name = null, Filesystem $filesystem)
+    {
+        $this->filesystem = $filesystem;
+        parent::__construct($name);
+    }
 
     /**
      * Configure the command options.
@@ -41,16 +53,8 @@ class NewCommand extends Command {
         $output->writeln('<info>Preparing package...</info>');
         $this->download($zipFile = $this->makeFilename())
              ->extract($zipFile, $directory)
+             ->rename($directory)
              ->cleanUp($zipFile);
-        $composer = $this->findComposer();
-        $commands = array(
-            $composer . ' run-script post-install-cmd',
-            $composer . ' run-script post-create-project-cmd',
-        );
-        $process  = new Process(implode(' && ', $commands), $directory, null, null, null);
-        $process->run(function ($type, $line) use ($output) {
-            $output->write($line);
-        });
         $output->writeln('<comment>Package ready!</comment>');
     }
 
@@ -92,14 +96,13 @@ class NewCommand extends Command {
     /**
      * Extract the zip file into the given directory.
      * @param  string $zipFile
-     * @param  string $directory
      * @return $this
      */
-    protected function extract($zipFile, $directory)
+    protected function extract($zipFile)
     {
         $archive = new ZipArchive;
         $archive->open($zipFile);
-        $archive->extractTo($directory);
+        $archive->extractTo(__DIR__);
         $archive->close();
 
         return $this;
@@ -119,15 +122,17 @@ class NewCommand extends Command {
     }
 
     /**
-     * Get the composer command for the environment.
-     * @return string
+     * Rename the folder
+     * @param $directory
+     * @return $this
      */
-    protected function findComposer()
+    public function rename($directory)
     {
-        if (file_exists(getcwd() . '/composer.phar')) {
-            return '"' . PHP_BINARY . '" composer.phar';
-        }
+        $this->filesystem->move(
+            __DIR__.'/BackPack-Installer-master',
+            $directory
+        );
 
-        return 'composer';
+        return $this;
     }
 }

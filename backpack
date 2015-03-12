@@ -8,5 +8,5 @@ if(file_exists(__DIR__.'/../../autoload.php')) {
 }
 
 $app = new Symfony\Component\Console\Application('BackPack Installer', '1.0.0');
-$app->add(new BackPack\Installer\Console\NewCommand);
+$app->add(new BackPack\Installer\Console\NewCommand(NULL, new \Illuminate\Filesystem\Filesystem));
 $app->run();

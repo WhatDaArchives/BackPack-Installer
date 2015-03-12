@@ -1,0 +1,25 @@
+{
+    "name": "whatdafox/backpack-installer",
+    "description": "SImple installer for BackPack",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Valentin PRUGNAUD",
+            "email": "valentin@whatdafox.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {
+        "guzzlehttp/guzzle": "~4.0",
+        "symfony/console": "2.6.*",
+        "league/climate": "3.0.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "BackPack\\":"src"
+        }
+    },
+    "bin": [
+        "backpack"
+    ]
+}

@@ -1,12 +1,22 @@
 #!/usr/bin/env php
 <?php
 
-if(file_exists(__DIR__.'/../../autoload.php')) {
-    require __DIR__.'/../../autoload.php';
+// Include autoload
+if (file_exists(__DIR__ . '/../../autoload.php')) {
+    require __DIR__ . '/../../autoload.php';
 } else {
-    require __DIR__.'/vendor/autoload.php';
+    require __DIR__ . '/vendor/autoload.php';
 }
 
+// Prepare dependencies
+$filesystem = new \Illuminate\Filesystem\Filesystem;
+
+// Boot application
 $app = new Symfony\Component\Console\Application('BackPack Installer', '1.0.0');
-$app->add(new BackPack\Installer\Console\NewCommand(NULL, new \Illuminate\Filesystem\Filesystem));
+$app->add(
+    new BackPack\Installer\Console\NewCommand(
+        null,
+        $filesystem
+    )
+);
 $app->run();

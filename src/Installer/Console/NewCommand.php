@@ -1,8 +1,11 @@
-<?php  namespace BackPack\Installer\Console;
+<?php namespace BackPack\Installer\Console;
 
 use ZipArchive;
+use Composer\Json\JsonFile;
 use Illuminate\Filesystem\Filesystem;
+use Symfony\Component\Process\Process;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -10,11 +13,15 @@ use Symfony\Component\Console\Output\OutputInterface;
 /**
  * Class NewCommand
  * @package BackPack\Installer\Console
- * @author Valentin PRUGNAUD <valentin@whatdafox.com>
+ * @author  Valentin PRUGNAUD <valentin@whatdafox.com>
  * @url http://www.foxted.com
  */
-class NewCommand extends Command {
+class NewCommand extends Command
+{
 
+    /**
+     * @var Filesystem
+     */
     protected $filesystem;
 
     /**
@@ -35,7 +42,8 @@ class NewCommand extends Command {
     {
         $this->setName('new')
              ->setDescription('Create a new BackPack package template.')
-             ->addArgument('name', InputArgument::REQUIRED, "Name of the package.");
+             ->addArgument('name', InputArgument::REQUIRED, "Name of the package.")
+             ->addOption('namespace', null, InputOption::VALUE_OPTIONAL, 'Namespace to use.', 'BackPack');
     }
 
     /**
@@ -54,7 +62,9 @@ class NewCommand extends Command {
         $this->download($zipFile = $this->makeFilename())
              ->extract($zipFile, $directory)
              ->rename($directory)
-             ->cleanUp($zipFile);
+             ->cleanUp($zipFile)
+             ->setNamespace($input, $directory)
+             ->runComposer($output, $directory);
         $output->writeln('<comment>Package ready!</comment>');
     }
 
@@ -87,7 +97,7 @@ class NewCommand extends Command {
      */
     protected function download($zipFile)
     {
-        $response = \GuzzleHttp\get('https://github.com/foxted/BackPack-Installer/archive/master.zip')->getBody();
+        $response = \GuzzleHttp\get('https://github.com/whatdafox/BackPack/archive/master.zip')->getBody();
         file_put_contents($zipFile, $response);
 
         return $this;
@@ -126,13 +136,79 @@ class NewCommand extends Command {
      * @param $directory
      * @return $this
      */
-    public function rename($directory)
+    protected function rename($directory)
     {
         $this->filesystem->move(
-            __DIR__.'/BackPack-Installer-master',
+            __DIR__ . '/BackPack-master',
             $directory
         );
 
         return $this;
     }
+
+    /**
+     * Set the namespace in Composer.json
+     * @param InputInterface $input
+     * @param                $directory
+     * @return $this
+     */
+    protected function setNamespace(InputInterface $input, $directory)
+    {
+        // Read composer.json file
+        $jsonFile = new JsonFile($directory . '/composer.json');
+        $json = $jsonFile->read();
+
+        // Create the autoload section with appropriate namespace
+        $json['autoload'] = [
+            "psr-4" => [
+                $input->getOption('namespace') . '\\' => 'src'
+            ]
+        ];
+
+        // Keep empty objects as objects
+        // @TODO To be improved
+        $json['require'] = new \stdClass();
+        $json['suggest'] = new \stdClass();
+        $json['autoload-dev'] = new \stdClass();
+        $json['extra'] = new \stdClass();
+
+        // Write composer.json file
+        $jsonFile->write($json);
+
+        return $this;
+    }
+
+    /**
+     * Run composer install command
+     * @param OutputInterface $output
+     * @param                 $directory
+     * @return $this
+     */
+    protected function runComposer(OutputInterface $output, $directory)
+    {
+        $composer = $this->findComposer();
+        $commands = array(
+            $composer . ' install'
+        );
+        $process  = new Process(implode(' && ', $commands), $directory, null, null, null);
+        $process->run(function ($type, $line) use ($output) {
+            $output->write($line);
+        });
+
+        return $this;
+    }
+
+    /**
+     * Get the composer command for the environment.
+     * @return string
+     */
+    protected function findComposer()
+    {
+        if (file_exists(getcwd() . '/composer.phar')) {
+            return '"' . PHP_BINARY . '" composer.phar';
+        }
+
+        return 'composer';
+    }
+
 }

@@ -1,7 +1,6 @@
 <?php namespace BackPack\Installer\Console;
 
 use ZipArchive;
-use Composer\Json\JsonFile;
 use Illuminate\Filesystem\Filesystem;
 use Symfony\Component\Process\Process;
 use Symfony\Component\Console\Command\Command;
@@ -155,8 +154,7 @@ class NewCommand extends Command
     protected function setNamespace(InputInterface $input, $directory)
     {
         // Read composer.json file
-        $jsonFile = new JsonFile($directory . '/composer.json');
-        $json = $jsonFile->read();
+        $json = json_decode($this->filesystem->get($directory . '/composer.json'), JSON_FORCE_OBJECT);
 
         // Create the autoload section with appropriate namespace
         $json['autoload'] = [
@@ -173,7 +171,10 @@ class NewCommand extends Command
         $json['extra'] = new \stdClass();
 
         // Write composer.json file
-        $jsonFile->write($json);
+        $this->filesystem->put(
+            $directory . '/composer.json',
+            json_encode($json, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)
+        );
 
         return $this;
     }
@@ -191,9 +192,7 @@ class NewCommand extends Command
             $composer . ' install'
         );
         $process  = new Process(implode(' && ', $commands), $directory, null, null, null);
-        $process->run(function ($type, $line) use ($output) {
-            $output->write($line);
-        });
+        $process->run();
 
         return $this;
     }

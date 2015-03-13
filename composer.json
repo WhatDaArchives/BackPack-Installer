@@ -14,7 +14,7 @@
         "symfony/console": "2.6.*",
         "symfony/process": "2.6.*",
         "illuminate/filesystem": "5.0.4",
-        "composer/composer": "1.0.*@dev"
+        "composer/composer": "dev-master"
     },
     "autoload": {
         "psr-4": {

@@ -23,7 +23,7 @@ Install this package as a global dependency:
 composer global require "whatdafox/backpack-installer=~1.0"
 ```
 
-You may want to add `~/.composer/vendor/bin` 
+You may want to add `~/.composer/vendor/bin` to your `PATH`
 
 ## Contribute
 

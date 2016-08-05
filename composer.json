@@ -10,10 +10,10 @@
     ],
     "minimum-stability": "stable",
     "require": {
-        "guzzlehttp/guzzle": "~4.0",
-        "symfony/console": "2.6.*",
-        "symfony/process": "2.6.*",
-        "illuminate/filesystem": "5.0.4"
+        "guzzlehttp/guzzle": "~6.0",
+        "symfony/console": "~3.0",
+        "symfony/process": "~3.0",
+        "illuminate/filesystem": "~5.0"
     },
     "autoload": {
         "psr-4": {

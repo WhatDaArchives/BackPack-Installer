@@ -1,5 +1,6 @@
 <?php namespace BackPack\Installer\Console;
 
+use GuzzleHttp\Client;
 use ZipArchive;
 use Illuminate\Filesystem\Filesystem;
 use Symfony\Component\Process\Process;
@@ -96,7 +97,8 @@ class NewCommand extends Command
      */
     protected function download($zipFile)
     {
-        $response = \GuzzleHttp\get('https://github.com/whatdafox/BackPack/archive/master.zip')->getBody();
+        $client = new Client();
+        $response = $client->get('https://github.com/whatdafox/BackPack/archive/master.zip')->getBody();
         file_put_contents($zipFile, $response);
 
         return $this;

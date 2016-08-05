@@ -20,7 +20,7 @@ The `namespace` option defaults to `BackPack`.
 Install this package as a global dependency:
 
 ```
-composer global require "whatdafox/backpack-installer=~1.0"
+composer global require whatdafox/backpack-installer
 ```
 
 You may want to add `~/.composer/vendor/bin` to your `PATH`
